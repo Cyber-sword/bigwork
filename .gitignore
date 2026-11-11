@@ -6,3 +6,6 @@
 # 打包产物（由 git archive 生成）
 dist/
 .playwright-mcp/
+# 课程原始模板文件（不入库）
+大作业模板.docx
+结课报告及要求.txt

@@ -60,6 +60,22 @@ docker version && docker compose version
 
 ## 3. 启动
 
+### 3.1 一键启动（Linux / WSL / macOS，推荐）
+
+```bash
+# 首次部署：克隆仓库并一键启动
+git clone https://github.com/Cyber-sword/bigwork.git
+cd bigwork
+bash start.sh
+
+# 之后再次启动（项目目录内）
+bash start.sh
+```
+
+`start.sh` 会自动完成：docker/compose 环境检测（缺失时给出安装指引）→ 构建镜像 → 后台启动 → 轮询等待就绪 → 打印访问地址与账号。WSL 环境需先在 Windows 安装 Docker Desktop 并开启 **Settings → Resources → WSL Integration**，或在 WSL 发行版内自行安装 Docker Engine。
+
+### 3.2 手动启动（通用）
+
 ```bash
 # 1. 进入项目根目录（即本 README 所在目录）
 cd bigwork
@@ -120,6 +136,7 @@ bash scripts/verify.sh        # Windows 用 Git Bash / Linux、macOS 直接 bash
 bigwork/
 ├── Dockerfile                  # 镜像构建（写 /flag、拷贝源码、目录授权）
 ├── docker-compose.yml          # 服务编排（26112:80、unless-stopped）
+├── start.sh                    # 一键启动脚本（Linux / WSL / macOS）
 ├── README.md                   # 本文档
 ├── src/                        # 站点源码 → 拷贝至容器 /var/www/html/
 │   ├── index.php               # 首页（商品广场 + 隐藏 hint 注释）
