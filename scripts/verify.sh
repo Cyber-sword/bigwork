@@ -29,7 +29,7 @@ BASE="http://127.0.0.1:26112"
 FLAG="flag{this_is_zhangchangxin's_bigwork}"
 HINT="TODO(dev): avatar upload legacy validation only blocks exe/bat/sh/cmd; php/png/jpg are not filtered and original filename is kept under /uploads/."
 BRAND="胡杨好物"
-AUTHOR="张昌鑫"
+AUTHOR="cyber-sword"
 LOG="reports/verify.log"
 TMP=".verify_tmp"
 
