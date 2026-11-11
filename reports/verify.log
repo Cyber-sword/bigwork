@@ -1,0 +1,123 @@
+
+========== 步骤 1：重建并启动 Docker 服务 (.tools/docker/docker.exe / .tools/docker-compose.exe) ==========
+$ .tools/docker-compose.exe down -v
+$ .tools/docker-compose.exe build --no-cache
+Compose can now delegate builds to bake for better performance.
+ To do so, set COMPOSE_BAKE=true.
+#0 building with "default" instance using docker driver
+
+#1 [web internal] load build definition from Dockerfile
+#1 transferring dockerfile: 649B 0.0s done
+#1 DONE 0.1s
+
+#2 [web internal] load metadata for docker.io/library/php:8.2-apache
+#2 DONE 0.2s
+
+#3 [web internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [web internal] load build context
+#4 DONE 0.0s
+
+#5 [web 1/4] FROM docker.io/library/php:8.2-apache@sha256:1bc4115a5528326425f1f59846fc7879d7d3843da9905b42931755ac4d4b29bc
+#5 resolve docker.io/library/php:8.2-apache@sha256:1bc4115a5528326425f1f59846fc7879d7d3843da9905b42931755ac4d4b29bc 0.0s done
+#5 ...
+
+#4 [web internal] load build context
+#4 transferring context: 17.40kB 0.0s done
+#4 DONE 0.1s
+
+#5 [web 1/4] FROM docker.io/library/php:8.2-apache@sha256:1bc4115a5528326425f1f59846fc7879d7d3843da9905b42931755ac4d4b29bc
+#5 DONE 0.7s
+
+#6 [web 2/4] RUN printf "%s\n" "flag{this_is_zhangchangxin's_bigwork}" > /flag && chmod 644 /flag
+#6 DONE 0.3s
+
+#7 [web 3/4] COPY src/ /var/www/html/
+#7 DONE 0.1s
+
+#8 [web 4/4] RUN mkdir -p /var/www/html/uploads     && chown -R www-data:www-data /var/www/html/uploads     && chmod -R 775 /var/www/html/uploads
+#8 DONE 0.2s
+
+#9 [web] exporting to image
+#9 exporting layers
+#9 exporting layers 0.3s done
+#9 exporting manifest sha256:a6d13b0ad03f676f2f71128578ec430f3cce16a1c029808b694349a1bad131ab 0.0s done
+#9 exporting config sha256:3c3971fa8fe85ed4c6d84ffb05b8619a1ae7b91fabdcd9307971517114acef44 0.0s done
+#9 exporting attestation manifest sha256:6d1a96194e740dccfaaba4451c1fc56e1e53e9e408b7701c09fdebf049899913 0.0s done
+#9 exporting manifest list sha256:93ea14e2b6dbc2f1cf7d820774e8e1f81cd8c4ac666b73c12683bd17ab046ea5
+#9 exporting manifest list sha256:93ea14e2b6dbc2f1cf7d820774e8e1f81cd8c4ac666b73c12683bd17ab046ea5 0.0s done
+#9 naming to docker.io/library/bigwork-web:latest done
+#9 unpacking to docker.io/library/bigwork-web:latest 0.1s done
+#9 DONE 0.6s
+
+#10 [web] resolving provenance for metadata file
+#10 DONE 0.0s
+ web  Built
+[PASS] docker compose build --no-cache 成功
+$ .tools/docker-compose.exe up -d
+ Network bigwork_default  Creating
+ Network bigwork_default  Created
+ Container ctf-bigwork-web  Creating
+ Container ctf-bigwork-web  Created
+ Container ctf-bigwork-web  Starting
+ Container ctf-bigwork-web  Started
+[PASS] docker compose up -d 成功
+NAME              IMAGE         COMMAND                   SERVICE   CREATED        STATUS                  PORTS
+ctf-bigwork-web   bigwork-web   "docker-php-entrypoi…"   web       1 second ago   Up Less than a second   0.0.0.0:26112->80/tcp, [::]:26112->80/tcp
+
+========== 步骤 2：等待服务启动（先等 60 秒，再轮询探测） ==========
+sleep 60 ...
+服务在第 1 轮探测后响应 (HTTP 200)
+[PASS] 服务已启动并可访问 (http://127.0.0.1:26112)
+
+========== 步骤 3：首页检查（可访问 / hint / 无 flag 泄露） ==========
+[PASS] 首页可访问 (HTTP 200)
+[PASS] 主页源码包含上传漏洞 hint 注释
+[PASS] 主页为校园二手交易平台页面
+[PASS] 主页源码不包含真实 flag
+
+========== 步骤 4：登录功能检查 ==========
+[PASS] 登录页用户名默认预填 admin
+[PASS] 错误密码登录被拒绝（提示用户名或密码错误）
+[PASS] 正确密码 admin/123456 登录成功（302 跳转 dashboard）
+[PASS] 携带 Cookie 访问个人中心成功 (HTTP 200)
+[PASS] 未登录访问个人中心被拦截（302 跳转登录页）
+[PASS] 个人中心源码不包含真实 flag
+
+========== 步骤 5：上传防护检查（.exe 必须被黑名单拦截） ==========
+[PASS] 伪装 image/png 的 .exe 被扩展名黑名单拦截
+[PASS] avatar.exe 未被保存到 /uploads/
+
+========== 步骤 6：上传绕过 + 一句话木马 GetFlag（核心漏洞验证） ==========
+[PASS] shell.php 伪造 Content-Type: image/png 上传成功
+[PASS] 原文件名保留，文件位于 /uploads/shell.php
+[PASS] 一句话木马执行 cat /flag 返回正确 flag
+
+========== 步骤 7：Flag 提交校验页面（hash_equals 服务端比对） ==========
+[PASS] 错误 flag 提交被拒绝
+[PASS] 正确 flag 提交校验成功
+[PASS] flag_submit 页面源码不包含真实 flag
+
+========== 步骤 8：全站源码 flag 泄露检查 ==========
+[PASS] 源码泄露检查 / 不含真实 flag
+[PASS] 源码泄露检查 /login.php 不含真实 flag
+[PASS] 源码泄露检查 /flag_submit.php 不含真实 flag
+[PASS] 源码泄露检查 /dashboard.php 不含真实 flag
+FLAG_OK
+[PASS] /flag 位于容器根目录且不在 Web 根目录内
+
+========== 步骤 9：本机 IP 访问 26112 端口检查 ==========
+尝试 http://10.67.27.199:26112/ ...
+  -> HTTP 200
+[PASS] 本机 IP (10.67.27.199) 访问 26112 端口成功
+
+========== 步骤 10：最终服务状态 ==========
+NAME              IMAGE         COMMAND                   SERVICE   CREATED              STATUS              PORTS
+ctf-bigwork-web   bigwork-web   "docker-php-entrypoi…"   web       About a minute ago   Up About a minute   0.0.0.0:26112->80/tcp, [::]:26112->80/tcp
+
+==============================================
+验证完成：PASS=27 FAIL=0
+结论：全部验证通过 ✔
+==============================================

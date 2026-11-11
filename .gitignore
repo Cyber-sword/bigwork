@@ -1,0 +1,5 @@
+# 临时验证目录
+.verify_tmp/
+.diag/
+# 本地下载的 Docker CLI 工具（不入库）
+.tools/
