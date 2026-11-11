@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: bigwork-web:1.0
     container_name: ctf-bigwork-web
     ports: ["26112:80"]
     restart: unless-stopped
