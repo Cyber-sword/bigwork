@@ -7,9 +7,10 @@ RUN printf "%s\n" "flag{this_is_zhangchangxin's_bigwork}" > /flag && chmod 644 /
 # 复制站点源码到 Apache Web 根目录
 COPY src/ /var/www/html/
 
-# uploads 目录授予 www-data 写权限（保留该目录的 PHP 执行能力，不部署任何 .htaccess 限制）
-RUN mkdir -p /var/www/html/uploads \
-    && chown -R www-data:www-data /var/www/html/uploads \
-    && chmod -R 775 /var/www/html/uploads
+# uploads 目录允许 www-data 写入（保留 PHP 执行能力，未部署任何 .htaccess 限制）
+# data 目录允许 www-data 写入（用户资料 profile.json 持久化）
+RUN mkdir -p /var/www/html/uploads /var/www/html/data \
+    && chown -R www-data:www-data /var/www/html/uploads /var/www/html/data \
+    && chmod -R 775 /var/www/html/uploads /var/www/html/data
 
 EXPOSE 80

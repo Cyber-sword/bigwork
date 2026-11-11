@@ -3,3 +3,6 @@
 .diag/
 # 本地下载的 Docker CLI 工具（不入库）
 .tools/
+# 打包产物（由 git archive 生成）
+dist/
+.playwright-mcp/

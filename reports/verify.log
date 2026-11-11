@@ -1,56 +1,56 @@
 
 ========== 步骤 1：重建并启动 Docker 服务 (.tools/docker/docker.exe / .tools/docker-compose.exe) ==========
 $ .tools/docker-compose.exe down -v
+ Container ctf-bigwork-web  Stopping
+ Container ctf-bigwork-web  Stopped
+ Container ctf-bigwork-web  Removing
+ Container ctf-bigwork-web  Removed
+ Network bigwork_default  Removing
+ Network bigwork_default  Removed
 $ .tools/docker-compose.exe build --no-cache
 Compose can now delegate builds to bake for better performance.
  To do so, set COMPOSE_BAKE=true.
 #0 building with "default" instance using docker driver
 
 #1 [web internal] load build definition from Dockerfile
-#1 transferring dockerfile: 649B 0.0s done
-#1 DONE 0.1s
+#1 transferring dockerfile: 768B done
+#1 DONE 0.0s
 
 #2 [web internal] load metadata for docker.io/library/php:8.2-apache
-#2 DONE 0.2s
+#2 DONE 0.3s
 
 #3 [web internal] load .dockerignore
 #3 transferring context: 2B done
 #3 DONE 0.0s
 
-#4 [web internal] load build context
-#4 DONE 0.0s
+#4 [web 1/4] FROM docker.io/library/php:8.2-apache@sha256:1bc4115a5528326425f1f59846fc7879d7d3843da9905b42931755ac4d4b29bc
+#4 resolve docker.io/library/php:8.2-apache@sha256:1bc4115a5528326425f1f59846fc7879d7d3843da9905b42931755ac4d4b29bc 0.0s done
+#4 CACHED
 
-#5 [web 1/4] FROM docker.io/library/php:8.2-apache@sha256:1bc4115a5528326425f1f59846fc7879d7d3843da9905b42931755ac4d4b29bc
-#5 resolve docker.io/library/php:8.2-apache@sha256:1bc4115a5528326425f1f59846fc7879d7d3843da9905b42931755ac4d4b29bc 0.0s done
-#5 ...
-
-#4 [web internal] load build context
-#4 transferring context: 17.40kB 0.0s done
-#4 DONE 0.1s
-
-#5 [web 1/4] FROM docker.io/library/php:8.2-apache@sha256:1bc4115a5528326425f1f59846fc7879d7d3843da9905b42931755ac4d4b29bc
-#5 DONE 0.7s
+#5 [web internal] load build context
+#5 transferring context: 741B done
+#5 DONE 0.0s
 
 #6 [web 2/4] RUN printf "%s\n" "flag{this_is_zhangchangxin's_bigwork}" > /flag && chmod 644 /flag
-#6 DONE 0.3s
+#6 DONE 0.2s
 
 #7 [web 3/4] COPY src/ /var/www/html/
 #7 DONE 0.1s
 
-#8 [web 4/4] RUN mkdir -p /var/www/html/uploads     && chown -R www-data:www-data /var/www/html/uploads     && chmod -R 775 /var/www/html/uploads
+#8 [web 4/4] RUN mkdir -p /var/www/html/uploads /var/www/html/data     && chown -R www-data:www-data /var/www/html/uploads /var/www/html/data     && chmod -R 775 /var/www/html/uploads /var/www/html/data
 #8 DONE 0.2s
 
 #9 [web] exporting to image
 #9 exporting layers
 #9 exporting layers 0.3s done
-#9 exporting manifest sha256:a6d13b0ad03f676f2f71128578ec430f3cce16a1c029808b694349a1bad131ab 0.0s done
-#9 exporting config sha256:3c3971fa8fe85ed4c6d84ffb05b8619a1ae7b91fabdcd9307971517114acef44 0.0s done
-#9 exporting attestation manifest sha256:6d1a96194e740dccfaaba4451c1fc56e1e53e9e408b7701c09fdebf049899913 0.0s done
-#9 exporting manifest list sha256:93ea14e2b6dbc2f1cf7d820774e8e1f81cd8c4ac666b73c12683bd17ab046ea5
-#9 exporting manifest list sha256:93ea14e2b6dbc2f1cf7d820774e8e1f81cd8c4ac666b73c12683bd17ab046ea5 0.0s done
+#9 exporting manifest sha256:be4ffe3aa2c6cfdf7f47157280526697b259c77889f899d742c9a7d3932c28cb 0.0s done
+#9 exporting config sha256:9a67def3fc3272be98a28ba020841be051e98f13edaf7a823a5d3414d7312577 0.0s done
+#9 exporting attestation manifest sha256:52ddef06136d2fc53a719b41aa5a5a8c3d4c3195c8dc35fb7f9c977234794c71 0.0s done
+#9 exporting manifest list sha256:15544cf9193cf9b28a16a930046a043e36b21b5847a2e6eb541a73dc08bce45b
+#9 exporting manifest list sha256:15544cf9193cf9b28a16a930046a043e36b21b5847a2e6eb541a73dc08bce45b 0.0s done
 #9 naming to docker.io/library/bigwork-web:latest done
 #9 unpacking to docker.io/library/bigwork-web:latest 0.1s done
-#9 DONE 0.6s
+#9 DONE 0.5s
 
 #10 [web] resolving provenance for metadata file
 #10 DONE 0.0s
@@ -72,10 +72,12 @@ sleep 60 ...
 服务在第 1 轮探测后响应 (HTTP 200)
 [PASS] 服务已启动并可访问 (http://127.0.0.1:26112)
 
-========== 步骤 3：首页检查（可访问 / hint / 无 flag 泄露） ==========
+========== 步骤 3：首页检查（品牌 / 作者 / 商品 / hint / 无 flag 泄露） ==========
 [PASS] 首页可访问 (HTTP 200)
 [PASS] 主页源码包含上传漏洞 hint 注释
-[PASS] 主页为校园二手交易平台页面
+[PASS] 网站品牌已更名为「胡杨好物」
+[PASS] 页脚版权包含「作者：张昌鑫」
+[PASS] 商品列表已扩充（当前 14 件 ≥ 12 件）
 [PASS] 主页源码不包含真实 flag
 
 ========== 步骤 4：登录功能检查 ==========
@@ -86,38 +88,58 @@ sleep 60 ...
 [PASS] 未登录访问个人中心被拦截（302 跳转登录页）
 [PASS] 个人中心源码不包含真实 flag
 
-========== 步骤 5：上传防护检查（.exe 必须被黑名单拦截） ==========
+========== 步骤 5：购物车功能检查（加购 / 数量增减 / 删除 / 合计） ==========
+[PASS] 商品 #3 加入购物车成功（302 PRG 跳转）
+[PASS] 购物车页显示已加购商品（宿舍护眼小台灯）
+[PASS] 购物车页显示小计 ¥ 15.00
+[PASS] 数量 +1 后显示 2 件、合计更新为 ¥ 30.00
+[PASS] 删除后购物车为空（空态提示）
+
+========== 步骤 6：收藏功能检查（收藏 / 取消收藏） ==========
+[PASS] 收藏商品 #7 后收藏页可见（考研英语真题全集）
+[PASS] 取消收藏后收藏页恢复空态
+
+========== 步骤 7：个人资料修改功能检查（用户名/性别/年龄/生日/地址） ==========
+[PASS] 资料修改 POST 成功（302 PRG 跳转 profile.php?saved=1）
+[PASS] 新用户名「胡杨测试君」已回显
+[PASS] 新昵称同步显示在个人中心
+[PASS] 非法年龄(999)被服务端校验拦截
+[PASS] 资料已恢复默认值（大漠胡杨）
+
+========== 步骤 8：上传防护检查（.exe 必须被黑名单拦截） ==========
 [PASS] 伪装 image/png 的 .exe 被扩展名黑名单拦截
 [PASS] avatar.exe 未被保存到 /uploads/
 
-========== 步骤 6：上传绕过 + 一句话木马 GetFlag（核心漏洞验证） ==========
+========== 步骤 9：上传绕过 + 一句话木马 GetFlag（核心漏洞验证） ==========
 [PASS] shell.php 伪造 Content-Type: image/png 上传成功
 [PASS] 原文件名保留，文件位于 /uploads/shell.php
 [PASS] 一句话木马执行 cat /flag 返回正确 flag
 
-========== 步骤 7：Flag 提交校验页面（hash_equals 服务端比对） ==========
+========== 步骤 10：Flag 提交校验页面（hash_equals 服务端比对） ==========
 [PASS] 错误 flag 提交被拒绝
 [PASS] 正确 flag 提交校验成功
 [PASS] flag_submit 页面源码不包含真实 flag
 
-========== 步骤 8：全站源码 flag 泄露检查 ==========
+========== 步骤 11：全站源码 flag 泄露检查 ==========
 [PASS] 源码泄露检查 / 不含真实 flag
 [PASS] 源码泄露检查 /login.php 不含真实 flag
+[PASS] 源码泄露检查 /cart.php 不含真实 flag
+[PASS] 源码泄露检查 /favorites.php 不含真实 flag
+[PASS] 源码泄露检查 /profile.php 不含真实 flag
 [PASS] 源码泄露检查 /flag_submit.php 不含真实 flag
-[PASS] 源码泄露检查 /dashboard.php 不含真实 flag
 FLAG_OK
 [PASS] /flag 位于容器根目录且不在 Web 根目录内
 
-========== 步骤 9：本机 IP 访问 26112 端口检查 ==========
+========== 步骤 12：本机 IP 访问 26112 端口检查 ==========
 尝试 http://10.67.27.199:26112/ ...
   -> HTTP 200
 [PASS] 本机 IP (10.67.27.199) 访问 26112 端口成功
 
-========== 步骤 10：最终服务状态 ==========
+========== 步骤 13：最终服务状态 ==========
 NAME              IMAGE         COMMAND                   SERVICE   CREATED              STATUS              PORTS
 ctf-bigwork-web   bigwork-web   "docker-php-entrypoi…"   web       About a minute ago   Up About a minute   0.0.0.0:26112->80/tcp, [::]:26112->80/tcp
 
 ==============================================
-验证完成：PASS=27 FAIL=0
+验证完成：PASS=43 FAIL=0
 结论：全部验证通过 ✔
 ==============================================

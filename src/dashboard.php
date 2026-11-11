@@ -2,15 +2,16 @@
 require_once __DIR__ . '/includes/auth.php';
 require_login();
 
-$PAGE_TITLE = '个人中心 - 青苗校园二手交易平台';
+$PAGE_TITLE = '个人中心 - 胡杨好物';
+$profile   = load_profile();
 $avatar    = $_SESSION['avatar'] ?? '';
 $avatarUrl = $avatar !== '' ? '/uploads/' . rawurlencode($avatar) : '';
 
 require_once __DIR__ . '/includes/header.php';
 ?>
 <section class="card">
-  <h2>👋 欢迎，<?= htmlspecialchars(current_user()) ?></h2>
-  <p>这是你的个人中心。在这里可以更换头像、管理发布的好物、提交挑战 Flag。</p>
+  <h2>👋 欢迎，<?= htmlspecialchars($profile['username']) ?></h2>
+  <p>这是你的个人中心。在这里可以维护资料、更换头像、管理收藏与购物车、提交挑战 Flag。</p>
 
   <div class="profile-grid">
     <div class="avatar-box">
@@ -19,7 +20,7 @@ require_once __DIR__ . '/includes/header.php';
         <img class="avatar" src="<?= htmlspecialchars($avatarUrl) ?>" alt="头像">
         <p class="muted small">文件：<?= htmlspecialchars($avatar) ?></p>
       <?php else: ?>
-        <div class="avatar avatar-placeholder">🌱</div>
+        <div class="avatar avatar-placeholder">🍂</div>
         <p class="muted small">还没有头像，快上传一个吧</p>
       <?php endif; ?>
     </div>
@@ -32,6 +33,18 @@ require_once __DIR__ . '/includes/header.php';
       </form>
       <p class="muted small">支持 png / jpg 等常见图片格式，文件将保存到 /uploads/ 目录。</p>
     </div>
+  </div>
+
+  <div class="card-inner">
+    <h3>📋 我的资料</h3>
+    <p class="muted small">
+      用户名：<?= htmlspecialchars($profile['username']) ?> ｜
+      性别：<?= htmlspecialchars($profile['gender']) ?> ｜
+      年龄：<?= htmlspecialchars($profile['age']) ?> ｜
+      生日：<?= htmlspecialchars($profile['birthday']) ?> ｜
+      地址：<?= htmlspecialchars($profile['address']) ?>
+    </p>
+    <a class="btn" href="profile.php">编辑资料</a>
   </div>
 
   <div class="card-inner">
